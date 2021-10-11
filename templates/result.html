@@ -2,8 +2,23 @@
 
 {% block content %}
 {% if result != "None" %}
+
+<p>Name: {{name}}</p>
+<p>Age: {{age}}</p>
+<p>Sex: {{sex}}</p>
+<p>Chest pain type: {{cp}}</p>
+<p>Resting blood pressure: {{trestbps}}</p>
+<p>Serum cholestoral in mg/dl: {{chol}}</p>
+<p>Fasting blood sugar > 120 mg/dl^ {{fbs}}</p>
+<p>Resting electrocardiographic results (values 0,1,2): {{restecg}} </p>
+<p>Maximum heart rate achieved: {{thalach}}</p>
+<p>Exercise induced angina: {{exang}}</p>
+<p>ST depression induced by exercise relative to rest: {{oldpeak}}</p>
+<p>The slope of the peak exercise ST segment: {{slope}}</p>
+<p>Number of major vessels (0-3) colored by flourosopy: {{ca}}</p>
+<p>Thal: {{thal}}</p>
 <h3>Predicted value: {{result}}</h3>
 <h4>0= less chance of heart attack 1= more chance of heart attack</h4>
 {% endif %}
-<a href="{{ url_for('index')}}">Back</a>
+<a href="{{ url_for('index')}}">Back</a> <a href="{{ url_for('update', id_=id_)}}">Edit</a>
 {% endblock %}
