@@ -1,10 +1,9 @@
-import sqlite3
 from flask import Flask, render_template, request, redirect, abort, g
 from model import model, scaler
+from db import delete_from_db, select_by_id, update_by_id, create_new, select_with_offset
+import sqlite3
 
 app = Flask(__name__)
-
-ITEMS_PER_PAGE = 2
 
 
 @app.before_request
@@ -17,53 +16,51 @@ def close_db(exc):
     g.db.close()
 
 
+def get_args_list(request):
+    name = request.form.get('name', '')
+    age = float(request.form.get('age', ''))
+    sex = float(request.form.get('sex', ''))
+    cp = float(request.form.get('cp', ''))
+    trestbps = float(request.form.get('trestbps', ''))
+    chol = float(request.form.get('chol', ''))
+    fbs = float(request.form.get('fbs', ''))
+    restecg = float(request.form.get('restecg', ''))
+    thalach = float(request.form.get('thalach', ''))
+    exang = float(request.form.get('exang', ''))
+    oldpeak = float(request.form.get('oldpeak', ''))
+    slope = float(request.form.get('slope', ''))
+    ca = float(request.form.get('ca', ''))
+    thal = float(request.form.get('thal', ''))
+    return name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal
+
+
 @app.route('/add', methods=["GET", "POST"])
 def add():
     result = 'None'
     if request.method == 'POST':
         try:
-            name = request.form.get('name', '')
-            age = float(request.form.get('age', ''))
-            sex = float(request.form.get('sex', ''))
-            cp = float(request.form.get('cp', ''))
-            trestbps = float(request.form.get('trestbps', ''))
-            chol = float(request.form.get('chol', ''))
-            fbs = float(request.form.get('fbs', ''))
-            restecg = float(request.form.get('restecg', ''))
-            thalach = float(request.form.get('thalach', ''))
-            exang = float(request.form.get('exang', ''))
-            oldpeak = float(request.form.get('oldpeak', ''))
-            slope = float(request.form.get('slope', ''))
-            ca = float(request.form.get('ca', ''))
-            thal = float(request.form.get('thal', ''))
+            name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal = get_args_list(
+                request)
             value_list = scaler.transform(
                 [[age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]])
             result = int(model.predict(value_list)[0])
         except ValueError:
             return render_template('add.html', **request.form, result=result)
-        cursor = g.db.cursor()
-        cursor.execute("""insert into heart_predicts (name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result)
-        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
-            name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result))
-        id_ = cursor.lastrowid
-        g.db.commit()
-        cursor.close()
+        id_ = create_new(name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal,
+                         result)
         return redirect(f"/result/{id_}")
     return render_template('add.html', **request.form, result=result)
 
 
 @app.route('/result/<id_>')
 def result(id_):
-    cursor = g.db.cursor()
-    cursor.execute(
-        """select name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result from heart_predicts where id=?""",
-        (id_,))
-    row = cursor.fetchone()
-    cursor.close()
+    row = select_by_id(id_)
     if row is None:
         abort(404)
     name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result = row
-    return render_template("result.html", result=result, id_=id_,
+    return render_template("result.html",
+                           result=result,
+                           id_=id_,
                            name=name,
                            age=age,
                            sex=sex,
@@ -82,41 +79,19 @@ def result(id_):
 
 @app.route('/update/<id_>', methods=['GET', 'POST'])
 def update(id_):
-    cursor = g.db.cursor()
     if request.method == 'POST':
         try:
-            name = request.form.get('name', '')
-            age = float(request.form.get('age', ''))
-            sex = float(request.form.get('sex', ''))
-            cp = float(request.form.get('cp', ''))
-            trestbps = float(request.form.get('trestbps', ''))
-            chol = float(request.form.get('chol', ''))
-            fbs = float(request.form.get('fbs', ''))
-            restecg = float(request.form.get('restecg', ''))
-            thalach = float(request.form.get('thalach', ''))
-            exang = float(request.form.get('exang', ''))
-            oldpeak = float(request.form.get('oldpeak', ''))
-            slope = float(request.form.get('slope', ''))
-            ca = float(request.form.get('ca', ''))
-            thal = float(request.form.get('thal', ''))
+            name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal = get_args_list(
+                request)
             value_list = scaler.transform(
                 [[age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]])
             result = int(model.predict(value_list)[0])
         except ValueError:
             return render_template('add.html', **request.form, result=result)
-        cursor.execute(
-            """update heart_predicts set name=?, age=?, sex=?, cp=?, trestbps=?, chol=?, fbs=?, restecg=?, thalach=?, exang=?, oldpeak=?, slope=?, ca=?, thal=?, result=? where id=?""",
-            (
-                name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result,
-                id_))
-        g.db.commit()
-        cursor.close()
+        update_by_id(id_, name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal,
+                     result)
         return redirect(f"/result/{id_}")
-    cursor.execute(
-        """select name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result from heart_predicts where id=?""",
-        (id_,))
-    row = cursor.fetchone()
-    cursor.close()
+    row = select_by_id(id_)
     if row is None:
         abort(404)
     name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result = row
@@ -140,24 +115,17 @@ def update(id_):
 
 @app.route('/delete/<id_>')
 def delete(id_):
-    cursor = g.db.cursor()
-    cursor.execute(
-        """delete from heart_predicts where id=?""",
-        (id_,))
-    g.db.commit()
-    cursor.close()
+    try:
+        delete_from_db(id_)
+    except:
+        abort(404)
     return redirect(f"/")
 
 
 @app.route("/")
 def index():
     p = max(1, int(request.args.get('p', 1)))
-    cursor = g.db.cursor()
-    cursor.execute(
-        """select id, name, age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, result from heart_predicts order by id limit ? offset ?""",
-        (ITEMS_PER_PAGE, ITEMS_PER_PAGE * (p - 1)))
-    rows = cursor.fetchall()
-    cursor.close()
+    rows = select_with_offset(p)
     return render_template("index.html", rows=rows, next=p + 1, prev=p - 1, curr=p)
 
 
