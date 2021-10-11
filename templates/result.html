@@ -1,0 +1,9 @@
+{% extends 'index.html' %}
+
+{% block content %}
+{% if result != "None" %}
+<h3>Predicted value: {{result}}</h3>
+<h4>0= less chance of heart attack 1= more chance of heart attack</h4>
+{% endif %}
+<a href="{{ url_for('index')}}">Back</a>
+{% endblock %}

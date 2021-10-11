@@ -5,42 +5,54 @@
     <title>Heart attack possibility</title>
 </head>
 <body>
-<form action="" , method="post">
-    <p><input type="text" , name="age" , placeholder="age" , required="True" , value="{{age}}"> Age</p>
-    <p><input type="text" , name="sex" , placeholder="sex" , required="True" , value="{{sex}}"> Sex</p>
-    <p><input type="text" , name="cp" , placeholder="chest pain type" , required="True" , value="{{cp}}">
-        Chest pain type: 1 - typical angina, 2 - atypical angina, 3 - non-anginal pain, 4 - asymptomatic</p>
-    <p><input type="text" , name="trestbps" , placeholder="resting blood pressure" , required="True" ,
-              value="{{trestbps}}"> Resting blood pressure</p>
-    <p><input type="text" , name="chol" , placeholder="serum cholestoral in mg/dl" , required="True" , value="{{chol}}">
-        Serum cholestoral in mg/dl</p>
-    <p><input type="text" , name="fbs" , placeholder="fasting blood sugar > 120 mg/dl" , required="True" ,
-              value="{{fbs}}"> Fasting blood sugar > 120 mg/dl
-    </p>
-    <p><input type="text" , name="restecg" , placeholder="resting electrocardiographic results" ,
-              required="True" , value="{{restecg}}"> Resting electrocardiographic results (values 0,1,2) </p>
-    <p><input type="text" , name="thalach" , placeholder="maximum heart rate achieved" , required="True" ,
-              value="{{thalach}}"> Maximum heart rate achieved
-    </p>
-    <p><input type="text" , name="exang" , placeholder="exercise induced angina" , required="True" , value="{{exang}}">
-        Exercise induced angina</p>
-    <p><input type="text" , name="oldpeak" , placeholder="ST depression induced by exercise relative to rest"
-              , required="True" , value="{{oldpeak}}"> ST depression induced by exercise relative to rest
-    </p>
-    <p><input type="text" , name="slope" , placeholder="the slope of the peak exercise ST segment" , required="True" ,
-              value="{{slope}}"> The slope of the peak exercise ST segment
-    </p>
-    <p><input type="text" , name="ca" , placeholder="number of major vessels colored by flourosopy" ,
-              required="True" , value="{{ca}}"> Number of major vessels (0-3) colored by flourosopy</p>
-    <p><input type="text" , name="thal" , placeholder="thal" ,
-              required="True" , value="{{thal}}"> Thal: 0 = normal; 1 = fixed defect; 2 = reversable defect</p>
-    <p>
-        <button type="submit">OK</button>
-    </p>
-</form>
-{% if result != "None" %}
-<h3>Predicted value: {{result}}</h3>
-<h4>0= less chance of heart attack 1= more chance of heart attack</h4>
+{% block content %}
+<h2>Predict list</h2>
+{% if rows %}
+
+<table>
+    <th>Name</th>
+    <th>Age</th>
+    <th>Sex</th>
+    <th>cp</th>
+    <th>trestbps</th>
+    <th>chol</th>
+    <th>fbs</th>
+    <th>restecg</th>
+    <th>thalach</th>
+    <th>exang</th>
+    <th>oldpeak</th>
+    <th>slope</th>
+    <th>ca</th>
+    <th>thal</th>
+    <th>result</th>
+    {% for row in rows %}
+    <tr>
+
+        <td><a href="{{ url_for('result', id_=row.0) }}">{{row.1}}</a></td>
+        <td>{{row.2}}</td>
+        <td>{{row.3}}</td>
+        <td>{{row.4}}</td>
+        <td>{{row.5}}</td>
+        <td>{{row.6}}</td>
+        <td>{{row.7}}</td>
+        <td>{{row.8}}</td>
+        <td>{{row.9}}</td>
+        <td>{{row.10}}</td>
+        <td>{{row.11}}</td>
+        <td>{{row.12}}</td>
+        <td>{{row.13}}</td>
+        <td>{{row.14}}</td>
+        <td>{{row.15}}</td>
+        <td>{{row.16}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% else %}
+<h3>There are no predicts yet</h3>
 {% endif %}
+<a href="{{ url_for('index')}}">Back</a>
+{% endblock %}
 </body>
 </html>
+
